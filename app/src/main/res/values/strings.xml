@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">XBrowser</string>
+    <string name="urlHint">Enter URL</string>
+    <string name="btnBack">Back</string>
+    <string name="btnForward">Forward</string>
+    <string name="btnRefresh">Refresh</string>
+    <string name="btnHome">Home</string>
+    <string name="btnGo">Go</string>
+    <string name="urlError">Please enter the correct URL!</string>
+    <string name="doubleClickExit">Click again to exit</string>
+    <string name="webviewError">Oops... An error occurred.</string>
+</resources>

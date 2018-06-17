@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">XBrowser</string>
+    <string name="urlHint">请输入网址</string>
+    <string name="btnBack">返回</string>
+    <string name="btnForward">前进</string>
+    <string name="btnRefresh">刷新</string>
+    <string name="btnHome">主页</string>
+    <string name="btnGo">进入</string>
+    <string name="urlError">请输入正确的网址！</string>
+    <string name="doubleClickExit">再按一次退出</string>
+    <string name="webviewError">出错了。。。\n请检查网络连接</string>
+</resources>
