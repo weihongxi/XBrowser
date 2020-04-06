@@ -1,5 +1,6 @@
 package com.weihongxi.xbrowser
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -17,22 +18,25 @@ import android.webkit.WebViewClient
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
-import java.lang.ref.WeakReference
 import java.util.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import kotlin.concurrent.schedule
+import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
-    private val TAG = "MainActivity"
+    private val TAG: String = "MainActivity"
 
     private val MSG_WHAT = 0x01
-    private val HOME_URL = "http://m.baidu.com"
+    //    private val HOME_URL = "http://m.baidu.com"
+//    private val HOME_URL = "http://cn.bing.com"
+    private val HOME_URL = "https://cn.bing.com/?FORM=BEHPTB&ensearch=1"
 
-    private val booksMark = arrayOf("www.baidu.com", "www.google.com", "www.aust.edu.cn")
+    private val booksMark = arrayOf("m.baidu.com", "www.google.com", "m.youtube.com/?hl=zh-CN", "www.aust.edu.cn")
 
     private var exit: Boolean = true
+    private var moveDistance: Float = 100F
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -129,7 +133,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         val aa = ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, booksMark)
         atvUrl.setAdapter(aa)
-        atvUrl.setOnKeyListener({ _, keyCode, _ ->
+        atvUrl.setOnKeyListener{ _, keyCode, _ ->
             if (keyCode == KeyEvent.KEYCODE_ENTER) {
                 hideSoftInput()
                 loadUrlAndShow()
@@ -137,7 +141,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             return@setOnKeyListener false
-        })
+        }
 
     }
 
@@ -151,7 +155,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun changeButtonState() {
 
-        val handler = object : Handler() {
+        val handler = @SuppressLint("HandlerLeak")
+        object : Handler() {
             override fun handleMessage(msg: Message?) {
                 if (msg?.what == MSG_WHAT) {
                     /*Log.d(TAG,"handler msg")
@@ -159,17 +164,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     Log.d(TAG, "can back: " + wvShow.canGoBack()
                             +", can forward: " + wvShow.canGoForward())*/
 
-                    if (wvShow.canGoBack()) {
-                        btnBack.isEnabled = true
-                    } else {
-                        btnBack.isEnabled = false
-                    }
+                    btnBack.isEnabled = wvShow.canGoBack()
 
-                    if (wvShow.canGoForward()) {
-                        btnForward.isEnabled = true
-                    } else {
-                        btnForward.isEnabled = false
-                    }
+                    btnForward.isEnabled = wvShow.canGoForward()
                 }
 
                 super.handleMessage(msg)
@@ -192,10 +189,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
         val view: View = currentFocus
         val token: IBinder = view.windowToken
-        if (token != null) {
-            val manager: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            manager.hideSoftInputFromWindow(token, InputMethodManager.HIDE_NOT_ALWAYS)
-        }
+        val manager: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        manager.hideSoftInputFromWindow(token, InputMethodManager.HIDE_NOT_ALWAYS)
 
     }
 
@@ -239,7 +234,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         var downPosY = 0f
         var curPosX = 0f
         var curPosY = 0f
-        view.setOnTouchListener({ v, event ->
+        view.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     downPosX = event.x
@@ -249,21 +244,37 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     curPosX = event.x
                     curPosY = event.y
                 }
+
                 MotionEvent.ACTION_UP -> {
-                    if (Math.abs(curPosY - downPosY) > 20) {
 
-                        if (curPosY > downPosY) {//move down
+                    val moveX = curPosX - downPosX
+                    val moveY = curPosY - downPosY
+                    Log.d(TAG, "moveX: $moveX ; moveY: $moveY")
+                    if (Math.abs(moveX) > moveDistance && Math.abs(moveY) < moveDistance) {
+
+                        if (moveX > 0) {//move right
+                            btnBack.performClick()
+                            Log.d(TAG, "move right")
+                        } else {//move left
+                            btnForward.performClick()
+                            Log.d(TAG, "move left")
+
+                        }
+                    } else if (Math.abs(moveY) > moveDistance) {
+
+                        if (moveY > 0) {//move down
                             hideOperation(false)
-
+                            Log.d(TAG, "move down")
                         } else {//move up
                             hideOperation(true)
+                            Log.d(TAG, "move up")
 
                         }
                     }
                 }
             }
             return@setOnTouchListener false
-        })
+        }
     }
 
     private fun hideOperation(hide: Boolean) {
@@ -298,8 +309,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onDestroy() {
         Log.d(TAG, "onDestroy.")
-        System.exit(0)
         super.onDestroy()
+        exitProcess(0)
     }
 
 }
